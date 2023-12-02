@@ -1,1 +1,4 @@
 .env/
+djangoPsql/djangoPsql/__pycache__/
+djangoPsql/projects/__pycache__/
+djangoPsql/projects/migrations/
