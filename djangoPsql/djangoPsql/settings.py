@@ -12,6 +12,29 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 
+# import hashicorp vault library
+import hvac
+
+def read_secrets(vault_url, role_id, secret_id, mount_point, path):
+    client = hvac.Client(url=vault_url)
+    client.auth.approle.login(
+        role_id=role_id,
+        secret_id=secret_id,
+    )
+    response = client.secrets.kv.v2.read_secret(
+    path=path,
+    mount_point=mount_point,
+    )
+    return response['data']['data']
+
+vault_url='http://localhost:8200/'
+role_id='cf4af284-9352-5ff3-9fc5-bfd1aceda34d'
+secret_id='598807c7-386a-68f2-da58-081c9d322633'
+mount_point='django'
+path='DATABASE'
+
+SECRETS = read_secrets(vault_url,role_id,secret_id,mount_point,path)
+print(SECRETS)
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -29,6 +52,7 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
+
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -80,12 +104,12 @@ WSGI_APPLICATION = "djangoPsql.wsgi.application"
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'django_db',
-        'USER': 'django_user',
-        'PASSWORD': 'SuperStrongPassword',
-        'HOST': 'localhost',
-        'PORT': '5432'
+        'ENGINE': SECRETS['ENGINE'],
+        'NAME': SECRETS['NAME'],
+        'USER': SECRETS['USER'],
+        'PASSWORD': SECRETS['PASSWORD'],
+        'HOST': SECRETS['HOST'],
+        'PORT': SECRETS['PORT']
     }
 }
 
